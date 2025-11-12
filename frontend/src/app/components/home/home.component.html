@@ -1,0 +1,13 @@
+<div class="home-container">
+  <h2>Welcome to the Nations Database</h2>
+  <p class="subtitle">Select a task from the menu below</p>
+  
+  <div class="menu-grid">
+    <div class="menu-card" *ngFor="let item of menuItems">
+      <div class="card-icon">{{ item.icon }}</div>
+      <h3>{{ item.title }}</h3>
+      <p>{{ item.description }}</p>
+      <a [routerLink]="item.route" class="btn-primary">View</a>
+    </div>
+  </div>
+</div>

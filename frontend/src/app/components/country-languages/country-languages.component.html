@@ -1,0 +1,33 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Languages Spoken in {{ countryName || 'Country' }}</h2>
+    <button class="btn-back" (click)="goBack()">← Back to Countries</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <p>Loading languages...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Languages List -->
+  <div *ngIf="!loading && !error && languages.length > 0" class="languages-container">
+    <div class="language-item" *ngFor="let language of languages">
+      <div class="language-name">
+        {{ language.language }}
+      </div>
+      <div class="language-badge" [class.official]="language.official">
+        {{ language.official ? 'Official' : 'Non-Official' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- No Languages Found -->
+  <div *ngIf="!loading && !error && languages.length === 0" class="no-data">
+    <p>No languages found for this country.</p>
+  </div>
+</div>

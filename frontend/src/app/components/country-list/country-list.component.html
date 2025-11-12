@@ -1,0 +1,38 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Countries List</h2>
+    <button class="btn-back" (click)="goBack()">← Back to Home</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <p>Loading countries...</p>
+  </div>
+
+  
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  
+
+  <div *ngIf="!loading && !error" class="countries-container">
+    <div class="country-item" *ngFor="let country of countries" (click)="viewLanguages(country)">
+      <div class="country-info">
+        <h3>{{ country.name }}</h3>
+        <div class="country-details">
+          <span class="detail-item">
+            <strong>Code:</strong> {{ country.countryCode2 }}
+          </span>
+          <span class="detail-item">
+            <strong>Area:</strong> {{ country.area | number }} km²
+          </span>
+        </div>
+      </div>
+      <div class="arrow">→</div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && countries.length === 0" class="no-data">
+    <p>No countries found in the database.</p>
+  </div>
+</div>

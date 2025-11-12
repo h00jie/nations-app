@@ -1,0 +1,155 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Advanced Country Data</h2>
+    <button class="btn-back" (click)="goBack()">← Back to Home</button>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-container">
+    <h3>Filters</h3>
+    <div class="filters-grid">
+      <!-- Region Filter -->
+      <div class="filter-item">
+        <label for="region">Region:</label>
+        <select id="region" [(ngModel)]="selectedRegionId" class="form-control">
+          <option [value]="undefined">All Regions</option>
+          <option *ngFor="let region of regions" [value]="region.regionId">
+            {{ region.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Year From Filter -->
+      <div class="filter-item">
+        <label for="yearFrom">Year From:</label>
+        <input 
+          type="number" 
+          id="yearFrom" 
+          [(ngModel)]="yearFrom" 
+          placeholder="e.g., 2000"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Year To Filter -->
+      <div class="filter-item">
+        <label for="yearTo">Year To:</label>
+        <input 
+          type="number" 
+          id="yearTo" 
+          [(ngModel)]="yearTo" 
+          placeholder="e.g., 2020"
+          class="form-control"
+        />
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="applyFilters()">Apply Filters</button>
+      <button class="btn-secondary" (click)="clearFilters()">Clear Filters</button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <p>Loading data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Data Table -->
+  <div *ngIf="!loading && !error && countryData.length > 0">
+    <div class="results-info">
+      <p>
+        Showing {{ (currentPage * pageSize) + 1 }} to 
+        {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+        of {{ totalElements }} results
+      </p>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Continent</th>
+            <th>Region</th>
+            <th>Country</th>
+            <th>Year</th>
+            <th>Population</th>
+            <th>GDP (millions)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of countryData">
+            <td>{{ row.continentName }}</td>
+            <td>{{ row.regionName }}</td>
+            <td class="country-name">{{ row.countryName }}</td>
+            <td class="center">{{ row.year }}</td>
+            <td class="right">{{ row.population | number }}</td>
+            <td class="right">{{ row.gdp | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button 
+        class="page-btn" 
+        (click)="goToPage(0)" 
+        [disabled]="isFirst"
+        title="First Page"
+      >
+        First
+      </button>
+      
+      <button 
+        class="page-btn" 
+        (click)="previousPage()" 
+        [disabled]="isFirst"
+        title="Previous Page"
+      >
+        Previous
+      </button>
+
+      <button 
+        *ngFor="let page of getPageNumbers()" 
+        class="page-btn" 
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page + 1 }}
+      </button>
+
+      <button 
+        class="page-btn" 
+        (click)="nextPage()" 
+        [disabled]="isLast"
+        title="Next Page"
+      >
+        Next
+      </button>
+      
+      <button 
+        class="page-btn" 
+        (click)="goToPage(totalPages - 1)" 
+        [disabled]="isLast"
+        title="Last Page"
+      >
+        Last
+      </button>
+      
+      <div class="pagination-info">
+        Page {{ currentPage + 1 }} of {{ totalPages }}
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data -->
+  <div *ngIf="!loading && !error && countryData.length === 0" class="no-data">
+    <p>No data found matching your filters.</p>
+  </div>
+</div>
