@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nations.api.mappers.CountryMapper">
+
+    <!-- 1️⃣ All countries -->
+    <select id="findAll" resultType="com.nations.api.models.Country">
+        <![CDATA[
+        SELECT country_id AS countryId,
+               name,
+               area,
+               country_code2 AS countryCode2,
+               country_code3 AS countryCode3,
+               region_id AS regionId
+        FROM countries
+        ORDER BY name
+        ]]>
+    </select>
+
+    <!-- 2️⃣ Languages per country (optional parameter handling) -->
+    <select id="findLanguagesByCountry" parameterType="map" resultType="com.nations.api.models.Language">
+        <![CDATA[
+        SELECT l.language_id AS languageId,
+               l.language,
+               c.country_id AS countryId
+        FROM languages l
+        join country_languages cl on cl.language_id =l.language_id
+        join countries c on cl.country_id = c.country_id
+        WHERE 1=1
+        ]]>
+        <if test="countryId != null">
+            AND c.country_id = #{countryId}
+        </if>
+    </select>
+
+    <select id="countCountriesMaxGdpRatio" resultType="long">
+        SELECT COUNT(DISTINCT country_id)
+        FROM country_stats
+        WHERE population > 0
+    </select>
+
+    <!-- 3️⃣ Max GDP/population ratio (optional year filter) -->
+    <select id="findMaxGdpPerPopulation" parameterType="map" resultType="com.nations.api.models.CountryStats">
+        <![CDATA[
+        SELECT
+            c.name as countryName,
+            c.country_code3 as countryCode3,
+            cs.year,
+            cs.population,
+            cs.gdp
+        FROM (
+            SELECT
+                country_id,
+                year,
+                population,
+                gdp,
+                ROW_NUMBER() OVER (
+                    PARTITION BY country_id
+                    ORDER BY (gdp / NULLIF(population, 0)) DESC
+                ) as rn
+            FROM country_stats
+            WHERE population > 0
+        ) cs
+        JOIN countries c ON cs.country_id = c.country_id
+        WHERE cs.rn = 1
+        ORDER BY c.name
+        ]]>
+        <if test="size != null and offset != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="findFiltered" parameterType="map" resultType="com.nations.api.models.CountryData">
+        <![CDATA[
+        SELECT c.name AS countryName,
+               r.name AS regionName,
+               co.name AS continentName,
+               cs.year,
+               cs.population,
+               cs.gdp
+        FROM country_stats cs
+        JOIN countries c ON cs.country_id = c.country_id
+        JOIN regions r ON c.region_id = r.region_id
+        JOIN continents co ON r.continent_id = co.continent_id
+        ]]>
+        <where>
+            <if test="regionId != null">
+                AND r.region_id = #{regionId}
+            </if>
+            <if test="yearFrom != null">
+                AND cs.year &gt;= #{yearFrom}
+            </if>
+            <if test="yearTo != null">
+                AND cs.year &lt;= #{yearTo}
+            </if>
+        </where>
+        <![CDATA[
+        ORDER BY co.name, r.name, c.name, cs.year
+        ]]>
+    </select>
+
+    <select id="getFilteredCountryData" resultType="com.nations.api.models.CountryData">
+        SELECT
+        cont.name as continentName,
+        r.name as regionName,
+        c.name as countryName,
+        cs.year,
+        cs.population,
+        cs.gdp
+        FROM country_stats cs
+        JOIN countries c ON cs.country_id = c.country_id
+        JOIN regions r ON c.region_id = r.region_id
+        JOIN continents cont ON r.continent_id = cont.continent_id
+        <where>
+            <if test="regionId != null">
+                AND r.region_id = #{regionId}
+            </if>
+            <if test="yearFrom != null">
+                AND cs.year &gt;= #{yearFrom}
+            </if>
+            <if test="yearTo != null">
+                AND cs.year &lt;= #{yearTo}
+            </if>
+        </where>
+        ORDER BY cont.name, r.name, c.name, cs.year
+        <if test="size != null and offset != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="countFilteredCountryData" resultType="long">
+        SELECT COUNT(*)
+        FROM country_stats cs
+        JOIN countries c ON cs.country_id = c.country_id
+        JOIN regions r ON c.region_id = r.region_id
+        JOIN continents cont ON r.continent_id = cont.continent_id
+        <where>
+            <if test="regionId != null">
+                AND r.region_id = #{regionId}
+            </if>
+            <if test="yearFrom != null">
+                AND cs.year &gt;= #{yearFrom}
+            </if>
+            <if test="yearTo != null">
+                AND cs.year &lt;= #{yearTo}
+            </if>
+        </where>
+    </select>
+
+</mapper>
